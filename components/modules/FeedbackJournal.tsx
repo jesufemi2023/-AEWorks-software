@@ -1,6 +1,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { useProjectContext } from '../../hooks/useProjectContext';
+import { useAppContext } from '../../hooks/useAppContext';
 import Icon from '../ui/Icon';
 import Button from '../ui/Button';
 import { Project, CustomerFeedback } from '../../types';
@@ -14,6 +15,8 @@ interface FeedbackJournalProps {
 
 const FeedbackJournal: React.FC<FeedbackJournalProps> = ({ onBack, onOpenProject }) => {
     const { projects, updateProject } = useProjectContext();
+    const { currentUser } = useAppContext();
+    const isReadOnly = currentUser?.role !== 'admin' && currentUser?.role !== 'superadmin';
     const [unassigned, setUnassigned] = useState<any[]>([]);
     const [linkingItem, setLinkingItem] = useState<any | null>(null);
 
@@ -152,10 +155,12 @@ const FeedbackJournal: React.FC<FeedbackJournalProps> = ({ onBack, onOpenProject
                                             </div>
                                         </div>
                                         <p className="text-[11px] font-medium text-slate-600 italic mb-6">"{item.feedback.comments || 'No comment...'}"</p>
-                                        <div className="flex gap-2">
-                                            <Button onClick={() => setLinkingItem(item)} variant="primary" size="sm" className="flex-grow py-3 text-[9px] uppercase font-black tracking-widest">Link to Project</Button>
-                                            <button onClick={() => handleDiscardOrphan(item.id)} className="px-4 text-slate-300 hover:text-red-500 transition-colors"><Icon name="fas fa-trash-alt"/></button>
-                                        </div>
+                                        {!isReadOnly && (
+                                            <div className="flex gap-2">
+                                                <Button onClick={() => setLinkingItem(item)} variant="primary" size="sm" className="flex-grow py-3 text-[9px] uppercase font-black tracking-widest">Link to Project</Button>
+                                                <button onClick={() => handleDiscardOrphan(item.id)} className="px-4 text-slate-300 hover:text-red-500 transition-colors"><Icon name="fas fa-trash-alt"/></button>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

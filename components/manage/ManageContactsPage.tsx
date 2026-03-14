@@ -16,7 +16,8 @@ interface ManageContactsPageProps {
 
 const ManageContactsPage: React.FC<ManageContactsPageProps> = ({ goBack }) => {
     const { contacts, setContacts } = useProjectContext();
-    const { showNotification } = useAppContext();
+    const { currentUser, showNotification } = useAppContext();
+    const isReadOnly = currentUser?.role !== 'admin' && currentUser?.role !== 'superadmin';
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const columns: Column<Contact>[] = [
@@ -123,8 +124,12 @@ const ManageContactsPage: React.FC<ManageContactsPageProps> = ({ goBack }) => {
 
             <div className="my-6 p-5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-wrap gap-4 items-center justify-between shadow-inner">
                 <div className="flex gap-2">
-                    <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImport} className="hidden" />
-                    <Button onClick={() => fileInputRef.current?.click()} variant="warning" icon="fas fa-upload" size="sm">Bulk Import CSV</Button>
+                    {!isReadOnly && (
+                        <>
+                            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImport} className="hidden" />
+                            <Button onClick={() => fileInputRef.current?.click()} variant="warning" icon="fas fa-upload" size="sm">Bulk Import CSV</Button>
+                        </>
+                    )}
                     <Button onClick={() => exportToCSV(contacts, ['name', 'category', 'designation', 'phone1', 'email1'], 'Contacts_Master')} variant="outline" icon="fas fa-download" size="sm">Download registry</Button>
                 </div>
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -138,6 +143,7 @@ const ManageContactsPage: React.FC<ManageContactsPageProps> = ({ goBack }) => {
                 onSave={handleSave}
                 newItemFactory={createNewItem}
                 itemName="Record"
+                isReadOnly={isReadOnly}
             />
         </ManagePage>
     );

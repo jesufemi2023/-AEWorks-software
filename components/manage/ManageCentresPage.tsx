@@ -16,7 +16,8 @@ interface ManageCentresPageProps {
 
 const ManageCentresPage: React.FC<ManageCentresPageProps> = ({ goBack }) => {
     const { centres, setCentres } = useProjectContext();
-    const { showNotification } = useAppContext();
+    const { currentUser, showNotification } = useAppContext();
+    const isReadOnly = currentUser?.role !== 'admin' && currentUser?.role !== 'superadmin';
     const [selectedCentre, setSelectedCentre] = useState<Centre | null>(null);
     const [expenses, setExpenses] = useState<LocationExpense[]>([]);
     
@@ -74,6 +75,7 @@ const ManageCentresPage: React.FC<ManageCentresPageProps> = ({ goBack }) => {
                 onSave={handleSaveCentre}
                 newItemFactory={() => ({ id: db.generateId(), name: 'New Production Center', ship: 'Y', coords: '0,0', floorSpace: '0' })}
                 itemName="Facility"
+                isReadOnly={isReadOnly}
             />
 
             {selectedCentre && (
@@ -110,6 +112,7 @@ const ManageCentresPage: React.FC<ManageCentresPageProps> = ({ goBack }) => {
                                 description: ''
                             })}
                             itemName="Expense"
+                            isReadOnly={isReadOnly}
                         />
                     </div>
                 </Modal>

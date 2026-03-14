@@ -32,7 +32,8 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
     
     const dbMenuRef = useRef<HTMLDivElement>(null);
 
-    const isAdmin = currentUser?.role === 'admin';
+    const isSuperAdmin = currentUser?.role === 'superadmin';
+    const isAdmin = currentUser?.role === 'admin' || isSuperAdmin;
     const isViewer = currentUser?.role === 'viewer';
 
     useEffect(() => {

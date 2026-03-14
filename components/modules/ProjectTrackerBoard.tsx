@@ -15,6 +15,7 @@ const ProjectTrackerBoard: React.FC<{setView: (view: View) => void}> = ({ setVie
     const [selectedStageProject, setSelectedStageProject] = useState<Project | null>(null);
 
     const isViewer = currentUser?.role === 'viewer';
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
 
     const filteredProjects = useMemo(() => projects.filter(p => 
         (p.projName || '').toLowerCase().includes(filterText.toLowerCase()) ||
@@ -73,7 +74,7 @@ const ProjectTrackerBoard: React.FC<{setView: (view: View) => void}> = ({ setVie
                                                     Details
                                                 </button>
                                                 <button onClick={() => { setCurrentProject(project); setView(View.DASHBOARD); }} className="text-[9px] font-black uppercase bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-lg hover:bg-slate-200">Open</button>
-                                                {!isViewer && (
+                                                {!isAdmin ? null : (
                                                     <button 
                                                         onClick={() => handleDelete(project.projectCode)}
                                                         className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"

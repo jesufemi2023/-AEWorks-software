@@ -10,13 +10,13 @@ import InvoicingTab from './InvoicingTab';
 import { useAppContext } from '../../hooks/useAppContext';
 
 const TABS = [
-    { id: 'ProjectSpec', label: 'Project', icon: 'fas fa-project-diagram', roles: ['admin', 'manager', 'viewer'] },
-    { id: 'FramingSpec', label: 'Framing', icon: 'fas fa-ruler-combined', roles: ['admin', 'manager', 'viewer'] },
-    { id: 'FinishesSpec', label: 'Finishes', icon: 'fas fa-paint-roller', roles: ['admin', 'manager', 'viewer'] },
-    { id: 'DeliverySpec', label: 'Delivery', icon: 'fas fa-truck', roles: ['admin', 'manager', 'viewer'] },
-    { id: 'CostingSpec', label: 'Costing', icon: 'fas fa-calculator', roles: ['admin', 'manager'] },
-    { id: 'Preview', label: 'Preview', icon: 'fas fa-eye', roles: ['admin', 'manager', 'viewer'] },
-    { id: 'Invoicing', label: 'Invoicing', icon: 'fas fa-file-invoice-dollar', roles: ['admin', 'manager'] },
+    { id: 'ProjectSpec', label: 'Project', icon: 'fas fa-project-diagram', roles: ['superadmin', 'admin', 'manager', 'viewer'] },
+    { id: 'FramingSpec', label: 'Framing', icon: 'fas fa-ruler-combined', roles: ['superadmin', 'admin', 'manager', 'viewer'] },
+    { id: 'FinishesSpec', label: 'Finishes', icon: 'fas fa-paint-roller', roles: ['superadmin', 'admin', 'manager', 'viewer'] },
+    { id: 'DeliverySpec', label: 'Delivery', icon: 'fas fa-truck', roles: ['superadmin', 'admin', 'manager', 'viewer'] },
+    { id: 'CostingSpec', label: 'Costing', icon: 'fas fa-calculator', roles: ['superadmin', 'admin', 'manager'] },
+    { id: 'Preview', label: 'Preview', icon: 'fas fa-eye', roles: ['superadmin', 'admin', 'manager', 'viewer'] },
+    { id: 'Invoicing', label: 'Invoicing', icon: 'fas fa-file-invoice-dollar', roles: ['superadmin', 'admin', 'manager'] },
 ];
 
 const TabContainer: React.FC = () => {

@@ -17,9 +17,10 @@ interface CrudTableProps<T extends { id: string }> {
     newItemFactory: () => T;
     itemName: string;
     hideAddButton?: boolean;
+    isReadOnly?: boolean;
 }
 
-const CrudTable = <T extends { id: string },>({ columns, data, onSave, newItemFactory, itemName, hideAddButton = false }: CrudTableProps<T>) => {
+const CrudTable = <T extends { id: string },>({ columns, data, onSave, newItemFactory, itemName, hideAddButton = false, isReadOnly = false }: CrudTableProps<T>) => {
     const [localData, setLocalData] = useState<T[]>(data);
     const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -92,7 +93,7 @@ const CrudTable = <T extends { id: string },>({ columns, data, onSave, newItemFa
                     <h4 className="font-black text-white text-xs uppercase tracking-widest">{itemName} Registry</h4>
                     <p className="text-[10px] text-slate-400 mt-0.5">{localData.length} active records</p>
                  </div>
-                 {!hideAddButton && (
+                 {!hideAddButton && !isReadOnly && (
                     <Button onClick={handleAddNew} variant="success" icon="fas fa-plus" size="sm" className="px-5 py-2.5 text-xs shadow-lg shadow-green-900/40">
                         Create New {itemName}
                     </Button>
@@ -108,13 +109,13 @@ const CrudTable = <T extends { id: string },>({ columns, data, onSave, newItemFa
                                     {col.label}
                                 </th>
                             ))}
-                            <th className="px-4 py-4 text-center font-black uppercase tracking-wider text-[10px] border-b border-slate-200 w-32">Operations</th>
+                            {!isReadOnly && <th className="px-4 py-4 text-center font-black uppercase tracking-wider text-[10px] border-b border-slate-200 w-32">Operations</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {localData.length === 0 ? (
                             <tr>
-                                <td colSpan={columns.length + 1} className="p-20 text-center text-slate-400">
+                                <td colSpan={columns.length + (isReadOnly ? 0 : 1)} className="p-20 text-center text-slate-400">
                                     <Icon name="fas fa-database" className="text-5xl mb-4 opacity-10" />
                                     <p className="font-black uppercase tracking-widest text-xs">Database Partition Empty.</p>
                                 </td>
@@ -133,21 +134,23 @@ const CrudTable = <T extends { id: string },>({ columns, data, onSave, newItemFa
                                                 )}
                                             </td>
                                         ))}
-                                        <td className="px-4 py-3 text-center">
-                                            <div className="flex justify-center gap-2">
-                                                {isEditing ? (
-                                                    <>
-                                                        <button onClick={() => handleSaveRow(item.id)} className="text-green-700 hover:text-green-900 p-2 bg-green-100 rounded-lg shadow-sm" title="Commit changes"><Icon name="fas fa-check" /></button>
-                                                        <button onClick={handleCancel} className="text-slate-600 hover:text-red-700 p-2 bg-slate-200 rounded-lg shadow-sm" title="Abort"><Icon name="fas fa-times" /></button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button onClick={() => setEditingId(item.id)} className="text-blue-600 hover:text-blue-800 p-2 bg-blue-50 rounded-lg shadow-sm" title="Edit row"><Icon name="fas fa-edit" /></button>
-                                                        <button onClick={() => handleDelete(item.id)} className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Remove Record"><Icon name="fas fa-trash-alt" /></button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
+                                        {!isReadOnly && (
+                                            <td className="px-4 py-3 text-center">
+                                                <div className="flex justify-center gap-2">
+                                                    {isEditing ? (
+                                                        <>
+                                                            <button onClick={() => handleSaveRow(item.id)} className="text-green-700 hover:text-green-900 p-2 bg-green-100 rounded-lg shadow-sm" title="Commit changes"><Icon name="fas fa-check" /></button>
+                                                            <button onClick={handleCancel} className="text-slate-600 hover:text-red-700 p-2 bg-slate-200 rounded-lg shadow-sm" title="Abort"><Icon name="fas fa-times" /></button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button onClick={() => setEditingId(item.id)} className="text-blue-600 hover:text-blue-800 p-2 bg-blue-50 rounded-lg shadow-sm" title="Edit row"><Icon name="fas fa-edit" /></button>
+                                                            <button onClick={() => handleDelete(item.id)} className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Remove Record"><Icon name="fas fa-trash-alt" /></button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 );
                             })

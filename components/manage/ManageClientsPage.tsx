@@ -14,7 +14,8 @@ interface ManageClientsPageProps {
 
 const ManageClientsPage: React.FC<ManageClientsPageProps> = ({ goBack }) => {
     const { clients, setClients } = useProjectContext();
-    const { showNotification } = useAppContext();
+    const { currentUser, showNotification } = useAppContext();
+    const isReadOnly = currentUser?.role !== 'admin' && currentUser?.role !== 'superadmin';
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const columns: { key: keyof Client; label: string; }[] = [
@@ -86,8 +87,12 @@ const ManageClientsPage: React.FC<ManageClientsPageProps> = ({ goBack }) => {
         <ManagePage title="Customer & Client Relations" icon="fas fa-building" goBack={goBack}>
              <div className="mb-8 p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap gap-4 items-center justify-between">
                 <div className="flex gap-2">
-                    <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImport} className="hidden" />
-                    <Button onClick={() => fileInputRef.current?.click()} variant="warning" icon="fas fa-upload" size="sm">Bulk Import</Button>
+                    {!isReadOnly && (
+                        <>
+                            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImport} className="hidden" />
+                            <Button onClick={() => fileInputRef.current?.click()} variant="warning" icon="fas fa-upload" size="sm">Bulk Import</Button>
+                        </>
+                    )}
                     <Button onClick={() => exportToCSV(clients, ['mgr', 'name', 'phone', 'email', 'address', 'destination'], 'Customer_Base')} variant="outline" icon="fas fa-download" size="sm">Export CSV</Button>
                 </div>
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -100,6 +105,7 @@ const ManageClientsPage: React.FC<ManageClientsPageProps> = ({ goBack }) => {
                 onSave={handleSave}
                 newItemFactory={createNewItem}
                 itemName="Customer"
+                isReadOnly={isReadOnly}
             />
         </ManagePage>
     );

@@ -17,6 +17,7 @@ const ProjectListModal: React.FC<ProjectListModalProps> = ({ isOpen, onClose, on
     const { deleteProject } = useProjectContext();
     const { currentUser } = useAppContext();
     const isViewer = currentUser?.role === 'viewer';
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
     
     const sortedProjects = [...projects].sort((a, b) => {
         const dateA = a.savedAt ? new Date(a.savedAt).getTime() : 0;
@@ -50,7 +51,7 @@ const ProjectListModal: React.FC<ProjectListModalProps> = ({ isOpen, onClose, on
                                 </div>
                             </div>
                             
-                            {!isViewer && (
+                            {!isAdmin ? null : (
                                 <div className="pl-4">
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); handleDelete(project.projectCode); }} 

@@ -2,7 +2,7 @@
 export interface User {
     username: string;
     email: string;
-    role: 'admin' | 'manager' | 'viewer';
+    role: 'superadmin' | 'admin' | 'manager' | 'viewer';
 }
 
 export interface AuthUser extends User {

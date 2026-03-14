@@ -16,7 +16,8 @@ interface ManageMaterialsPageProps {
 const ManageMaterialsPage: React.FC<ManageMaterialsPageProps> = ({ goBack }) => {
     const [activeTab, setActiveTab] = useState<'framing' | 'finishes'>('framing');
     const { framingMaterials, setFramingMaterials, finishMaterials, setFinishMaterials } = useProjectContext();
-    const { showNotification } = useAppContext();
+    const { currentUser, showNotification } = useAppContext();
+    const isReadOnly = currentUser?.role !== 'admin' && currentUser?.role !== 'superadmin';
 
     const framingImportRef = useRef<HTMLInputElement>(null);
     const finishesImportRef = useRef<HTMLInputElement>(null);
@@ -176,15 +177,19 @@ const ManageMaterialsPage: React.FC<ManageMaterialsPageProps> = ({ goBack }) => 
                 <div className="animate-fade-in">
                     <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex flex-wrap gap-4 items-center justify-between shadow-sm">
                         <div className="flex gap-2">
-                            <input type="file" accept=".csv" ref={framingImportRef} onChange={handleFramingImport} className="hidden" />
-                            <Button onClick={() => framingImportRef.current?.click()} variant="warning" icon="fas fa-upload" size="sm">Import CSV</Button>
+                            {!isReadOnly && (
+                                <>
+                                    <input type="file" accept=".csv" ref={framingImportRef} onChange={handleFramingImport} className="hidden" />
+                                    <Button onClick={() => framingImportRef.current?.click()} variant="warning" icon="fas fa-upload" size="sm">Import CSV</Button>
+                                </>
+                            )}
                             <Button onClick={() => exportToCSV(framingMaterials, ['MATERIAL / GROUP', 'FRAMING MATERIALS', 'RATE', 'Surface Area'], 'Framing_Catalog')} variant="outline" icon="fas fa-download" size="sm">Export Catalog</Button>
                         </div>
                         <div className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-white px-3 py-1.5 rounded-full border border-blue-200">
                            Headers Required: MATERIAL / GROUP, FRAMING MATERIALS, RATE, Surface Area
                         </div>
                     </div>
-                    <CrudTable<FramingMaterial> columns={framingColumns} data={framingMaterials} onSave={handleFramingSave} newItemFactory={newFramingItem} itemName="Framing Material"/>
+                    <CrudTable<FramingMaterial> columns={framingColumns} data={framingMaterials} onSave={handleFramingSave} newItemFactory={newFramingItem} itemName="Framing Material" isReadOnly={isReadOnly} />
                 </div>
             )}
 
@@ -192,15 +197,19 @@ const ManageMaterialsPage: React.FC<ManageMaterialsPageProps> = ({ goBack }) => 
                  <div className="animate-fade-in">
                     <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex flex-wrap gap-4 items-center justify-between shadow-sm">
                         <div className="flex gap-2">
-                            <input type="file" accept=".csv" ref={finishesImportRef} onChange={handleFinishesImport} className="hidden" />
-                            <Button onClick={() => finishesImportRef.current?.click()} variant="warning" icon="fas fa-upload" size="sm" className="bg-emerald-600 hover:bg-emerald-700">Import CSV</Button>
+                            {!isReadOnly && (
+                                <>
+                                    <input type="file" accept=".csv" ref={finishesImportRef} onChange={handleFinishesImport} className="hidden" />
+                                    <Button onClick={() => finishesImportRef.current?.click()} variant="warning" icon="fas fa-upload" size="sm" className="bg-emerald-600 hover:bg-emerald-700">Import CSV</Button>
+                                </>
+                            )}
                             <Button onClick={() => exportToCSV(finishMaterials, ['MATERIAL / GROUP', 'NAME - MATERIAL', 'PRICE', 'Coverage'], 'Finishes_Catalog')} variant="outline" icon="fas fa-download" size="sm">Export Catalog</Button>
                         </div>
                         <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-white px-3 py-1.5 rounded-full border border-emerald-200">
                            Headers Required: MATERIAL / GROUP, NAME - MATERIAL, PRICE, Coverage
                         </div>
                     </div>
-                    <CrudTable<FinishMaterial> columns={finishesColumns} data={finishMaterials} onSave={handleFinishesSave} newItemFactory={newFinishItem} itemName="Accessory"/>
+                    <CrudTable<FinishMaterial> columns={finishesColumns} data={finishMaterials} onSave={handleFinishesSave} newItemFactory={newFinishItem} itemName="Accessory" isReadOnly={isReadOnly} />
                 </div>
             )}
         </ManagePage>
