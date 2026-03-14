@@ -137,7 +137,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
             const cloudResult = await db.pushToCloud();
             
             if (cloudResult.success) {
-                showNotification(`SUCCESS: Project saved to Drive (${meta.connectedEmail})`, 'success');
+                showNotification(`SUCCESS: Project saved to Drive`, 'success');
                 setSyncError(false);
             } else {
                 showNotification(`CLOUD REPOSITORY ERROR: ${cloudResult.message}. Local copy preserved.`, 'error');
@@ -208,7 +208,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
                             <button onClick={handleManualSync} disabled={isSyncing || isCommitting} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${badgeClass}`}>
                                 <div className={`w-1.5 h-1.5 rounded-full ${dotClass}`}></div>
                                 <span className="hidden sm:inline">
-                                    {isSyncing ? 'Syncing...' : syncError ? 'Re-link' : isCloudActive ? (systemMeta.connectedEmail ? `Linked: ${systemMeta.connectedEmail}` : 'Sync Data') : 'Establish Link'}
+                                    {isSyncing ? 'Syncing...' : syncError ? 'Re-link' : isCloudActive ? 'Cloud Active' : 'Establish Link'}
                                 </span>
                             </button>
                             {driveFileUrl && (

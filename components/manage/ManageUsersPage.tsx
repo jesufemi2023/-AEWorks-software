@@ -17,7 +17,7 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
     const { currentUser, showNotification } = useAppContext();
     const [users, setUsers] = useState<AuthUser[]>([]);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [systemMeta] = useState(db.getSystemMeta());
+    const [systemMeta, setSystemMeta] = useState(db.getSystemMeta());
     
     // New User State
     const [newUser, setNewUser] = useState<Partial<AuthUser>>({
@@ -29,6 +29,13 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
 
     useEffect(() => {
         setUsers(db.getData<AuthUser>('users'));
+        
+        const handleDbUpdate = () => {
+            setSystemMeta(db.getSystemMeta());
+            setUsers(db.getData<AuthUser>('users'));
+        };
+        window.addEventListener('aeworks_db_update', handleDbUpdate);
+        return () => window.removeEventListener('aeworks_db_update', handleDbUpdate);
     }, []);
 
     const columns: Column<AuthUser>[] = [
@@ -141,7 +148,7 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
                     </h4>
                     <p className="text-slate-400 text-sm leading-relaxed mb-4">
                         Users defined here are shared across all devices linked to: <br/>
-                        <strong className="text-blue-300">{systemMeta.connectedEmail || 'No Drive Linked Yet'}</strong>
+                        <strong className="text-blue-300">{systemMeta.driveAccessToken ? 'Google Drive (Cloud Vault)' : 'No Drive Linked Yet'}</strong>
                     </p>
                     <div className="flex gap-2">
                         <Button onClick={() => setIsCreateModalOpen(true)} variant="primary" icon="fas fa-user-plus" size="sm" className="px-5 shadow-lg shadow-blue-500/20">

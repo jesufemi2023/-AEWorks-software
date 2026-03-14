@@ -62,7 +62,6 @@ export interface SystemMeta {
     driveFileId?: string;
     driveAccessToken?: string;
     googleClientId?: string; 
-    connectedEmail?: string;
     driveFileUrl?: string;
     activeCollaborators?: string[];
 }
@@ -213,6 +212,10 @@ export const syncWithCloud = async (providedToken?: string, onNewFeedback?: (cod
     const token = providedToken || meta.driveAccessToken;
     if (!token) return { success: false, message: "Drive Auth Required." };
 
+    if (providedToken) {
+        updateSystemMeta({ driveAccessToken: providedToken });
+    }
+
     try {
         const query = encodeURIComponent(`name='${MASTER_FILE_NAME}' and trashed=false`);
         const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id, name)&supportsAllDrives=true&includeItemsFromAllDrives=true`, { headers: getDriveHeaders(token) });
@@ -220,7 +223,11 @@ export const syncWithCloud = async (providedToken?: string, onNewFeedback?: (cod
         const foundFile = (searchData.files || [])[0];
 
         if (!foundFile) {
-            await pushToCloud();
+            const pushRes = await pushToCloud();
+            if (!pushRes.success) {
+                return { success: false, message: "Failed to establish vault: " + pushRes.message };
+            }
+            window.dispatchEvent(new CustomEvent('aeworks_db_update', { detail: { key: 'all' } }));
             return { success: true, message: "Vault Established." };
         }
 

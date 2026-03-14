@@ -199,7 +199,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onLogout }) => {
                                 {isCloudConnected && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>}
                             </h3>
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                {isCloudConnected ? `Linked to ${meta.connectedEmail}` : 'Cloud Disconnected'}
+                                {isCloudConnected ? 'Cloud Vault Active' : 'Cloud Disconnected'}
                             </p>
                         </div>
                     </div>
