@@ -58,11 +58,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
     };
 
     const handleResetConfig = () => {
-        if (confirm("Reset Enterprise Identity Bridge? This will refresh settings from global policy.")) {
+        if (confirm("Disconnect this device from the cloud? You will need to re-authorize Google Drive to sync data again. Your local data will not be deleted.")) {
             localStorage.removeItem('system_meta');
             const freshMeta = db.getSystemMeta();
             setConfig(freshMeta);
-            showNotification("Bridge Reset to Corporate Policy.");
+            showNotification("Device disconnected from cloud sync.");
         }
     };
 
@@ -237,7 +237,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
                                                 {config.googleClientId}
                                             </code>
                                         </div>
-                                        <button onClick={handleResetConfig} className="w-full text-center text-[8px] font-black text-red-300 hover:text-red-500 transition-colors uppercase py-1">Refresh Global Policy</button>
+                                        <div className="p-3 bg-red-50 rounded-xl border border-red-100 mt-4">
+                                            <p className="text-[8px] text-red-500 uppercase tracking-widest font-bold mb-2 text-center">Troubleshooting</p>
+                                            <p className="text-[9px] text-red-600/80 text-center leading-relaxed mb-3">
+                                                If your sync is stuck or you need to switch to a different Google account, you can disconnect this device.
+                                            </p>
+                                            <button onClick={handleResetConfig} className="w-full text-center text-[9px] font-black text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors uppercase py-2 shadow-sm">
+                                                Disconnect Device from Cloud
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
