@@ -64,6 +64,7 @@ export interface SystemMeta {
     googleClientId?: string; 
     driveFileUrl?: string;
     activeCollaborators?: string[];
+    masterCorporateEmail?: string;
 }
 
 const GLOBAL_ENV_CLIENT_ID = (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID;
@@ -72,6 +73,10 @@ const MASTER_CLIENT_ID = GLOBAL_ENV_CLIENT_ID || HARDCODED_FALLBACK_ID;
 
 export const getSystemMeta = (): SystemMeta => {
     const raw = localStorage.getItem('system_meta');
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlClientId = urlParams.get('cid');
+    const urlMasterEmail = urlParams.get('master');
+
     const defaultMeta: SystemMeta = { 
         id: 'meta', 
         versionLabel: 'v4.6 Multi-Dev Sync', 
@@ -80,14 +85,31 @@ export const getSystemMeta = (): SystemMeta => {
         backupLocation: 'Google_Drive_AEWorks',
         googleClientId: MASTER_CLIENT_ID
     };
-    if (!raw) return defaultMeta;
-    try {
-        const data = JSON.parse(raw);
-        const meta = Array.isArray(data) ? data[0] : data;
-        return { ...defaultMeta, ...meta };
-    } catch {
-        return defaultMeta;
+    
+    let meta = defaultMeta;
+    if (raw) {
+        try {
+            const data = JSON.parse(raw);
+            meta = { ...defaultMeta, ...(Array.isArray(data) ? data[0] : data) };
+        } catch {}
     }
+
+    if (urlClientId || urlMasterEmail) {
+        let updated = false;
+        if (urlClientId && meta.googleClientId !== urlClientId) {
+            meta.googleClientId = urlClientId;
+            updated = true;
+        }
+        if (urlMasterEmail && meta.masterCorporateEmail !== urlMasterEmail) {
+            meta.masterCorporateEmail = urlMasterEmail;
+            updated = true;
+        }
+        if (updated) {
+            localStorage.setItem('system_meta', JSON.stringify([meta]));
+        }
+    }
+
+    return meta;
 };
 
 export const updateSystemMeta = (meta: Partial<SystemMeta>): void => {
@@ -207,7 +229,7 @@ export const syncInboxFeedback = async (onNewFeedback?: (code: string) => void):
     }
 };
 
-export const syncWithCloud = async (providedToken?: string, onNewFeedback?: (code: string) => void): Promise<{success: boolean, message: string}> => {
+export const syncWithCloud = async (providedToken?: string, onNewFeedback?: (code: string) => void): Promise<{success: boolean, message: string, vaultMissing?: boolean}> => {
     const meta = getSystemMeta();
     const token = providedToken || meta.driveAccessToken;
     if (!token) return { success: false, message: "Drive Auth Required." };
@@ -223,12 +245,12 @@ export const syncWithCloud = async (providedToken?: string, onNewFeedback?: (cod
         const foundFile = (searchData.files || [])[0];
 
         if (!foundFile) {
-            const pushRes = await pushToCloud();
-            if (!pushRes.success) {
-                return { success: false, message: "Failed to establish vault: " + pushRes.message };
-            }
-            window.dispatchEvent(new CustomEvent('aeworks_db_update', { detail: { key: 'all' } }));
-            return { success: true, message: "Vault Established." };
+            const expectedEmail = meta.masterCorporateEmail || "the authorized corporate account";
+            return { 
+                success: false, 
+                message: `Master Vault not found. Please authenticate using the correct account: ${expectedEmail}.`,
+                vaultMissing: true
+            };
         }
 
         const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${foundFile.id}?alt=media`, { headers: getDriveHeaders(token) });
@@ -241,7 +263,19 @@ export const syncWithCloud = async (providedToken?: string, onNewFeedback?: (cod
             localStorage.setItem(key, JSON.stringify(merged));
         });
 
-        updateSystemMeta({ driveFileId: foundFile.id, driveAccessToken: token, lastCloudSync: new Date().toISOString() });
+        // Fetch user email to ensure we have it if missing
+        let connectedEmail = (meta as any).connectedEmail;
+        if (!connectedEmail) {
+            try {
+                const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: getDriveHeaders(token) });
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    connectedEmail = userData.email;
+                }
+            } catch (e) {}
+        }
+
+        updateSystemMeta({ driveFileId: foundFile.id, driveAccessToken: token, lastCloudSync: new Date().toISOString(), connectedEmail } as any);
         
         await syncInboxFeedback(onNewFeedback);
         
@@ -250,6 +284,35 @@ export const syncWithCloud = async (providedToken?: string, onNewFeedback?: (cod
     } catch (err: any) {
         return { success: false, message: "Connection Error." };
     }
+};
+
+export const initializeMasterVault = async (providedToken?: string): Promise<{success: boolean, message: string}> => {
+    const meta = getSystemMeta();
+    const token = providedToken || meta.driveAccessToken;
+    if (!token) return { success: false, message: "Drive Auth Required." };
+
+    if (providedToken) {
+        updateSystemMeta({ driveAccessToken: providedToken });
+    }
+
+    const pushRes = await pushToCloud();
+    if (!pushRes.success) {
+        return { success: false, message: "Failed to initialize vault: " + pushRes.message };
+    }
+    
+    let email = (meta as any).connectedEmail;
+    try {
+        const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: getDriveHeaders(token) });
+        if (userRes.ok) {
+            const userData = await userRes.json();
+            email = userData.email;
+        }
+    } catch (e) {}
+    
+    updateSystemMeta({ masterCorporateEmail: email, connectedEmail: email } as any);
+    
+    window.dispatchEvent(new CustomEvent('aeworks_db_update', { detail: { key: 'all' } }));
+    return { success: true, message: "New Master Vault Initialized." };
 };
 
 export const pushToCloud = async (): Promise<{success: boolean, message: string}> => {

@@ -17,6 +17,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [showInstructions, setShowInstructions] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const [showInitVault, setShowInitVault] = useState(false);
     const [logo, setLogo] = useState<string | null>(db.getSystemLogo());
     const [config, setConfig] = useState(db.getSystemMeta());
     const { showNotification } = useAppContext();
@@ -65,6 +66,38 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
         }
     };
 
+    const handleInitializeVault = () => {
+        if (!config.googleClientId) return;
+        setIsLoading(true);
+        try {
+            const client = (window as any).google.accounts.oauth2.initTokenClient({
+                client_id: config.googleClientId,
+                scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email',
+                callback: async (response: any) => {
+                    if (response.error) {
+                        setIsLoading(false);
+                        showNotification(`Google Error: ${response.error}`, "error");
+                        return;
+                    }
+                    const result = await db.initializeMasterVault(response.access_token);
+                    setIsLoading(false);
+                    if (result.success) {
+                        showNotification(result.message, 'success');
+                        setActiveTab('login');
+                        setLogo(db.getSystemLogo());
+                        setConfig(db.getSystemMeta());
+                    } else {
+                        showNotification(result.message, 'error');
+                    }
+                }
+            });
+            client.requestAccessToken();
+        } catch (e) {
+            showNotification("Auth System Offline.", "error");
+            setIsLoading(false);
+        }
+    };
+
     const handleGoogleDriveSync = () => {
         if (!config.googleClientId) {
             showNotification("Critical Error: No Identity Key found.", "error");
@@ -97,6 +130,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
                         showNotification(result.message, 'success');
                         setActiveTab('login');
                         setLogo(db.getSystemLogo());
+                        setShowInitVault(false);
+                    } else if (result.vaultMissing) {
+                        showNotification(result.message, 'error');
+                        setShowInitVault(true);
                     } else {
                         showNotification(result.message, 'warning');
                     }
@@ -174,6 +211,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
                             <Button onClick={handleGoogleDriveSync} variant="success" size="lg" disabled={isLoading} icon={isLoading ? "fas fa-sync animate-spin" : "fab fa-google"} className="w-full py-4 text-[9px] tracking-[0.12em] uppercase font-black rounded-2xl shadow-xl shadow-green-600/20 bg-blue-600 border-none hover:bg-blue-700">
                                 {isLoading ? 'Verifying Identity...' : 'AUTHORIZE AEWORKS REPOSITORY'}
                             </Button>
+
+                            {showInitVault && (
+                                <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-xl animate-fade-in">
+                                    <p className="text-[10px] text-red-600 font-bold mb-3 uppercase tracking-widest text-center">System Administrator Only</p>
+                                    <p className="text-[9px] text-red-500 mb-4 text-center leading-relaxed">
+                                        No Master Vault was found. If you are setting up a brand new workspace, you can initialize a new vault. Otherwise, please log in with the correct corporate account.
+                                    </p>
+                                    <Button onClick={handleInitializeVault} variant="danger" size="md" disabled={isLoading} icon={isLoading ? "fas fa-sync animate-spin" : "fas fa-folder-plus"} className="w-full py-3 text-[9px] tracking-[0.12em] uppercase font-black rounded-xl shadow-lg shadow-red-600/20 bg-red-600 hover:bg-red-700">
+                                        {isLoading ? 'Initializing...' : 'Initialize New Master Vault'}
+                                    </Button>
+                                </div>
+                            )}
 
                             <div className="pt-4 mt-2 border-t border-slate-100">
                                 <button onClick={() => setShowAdvanced(!showAdvanced)} className="w-full text-center text-[8px] font-black text-slate-300 uppercase hover:text-slate-500 transition-colors tracking-[0.2em] mb-3">

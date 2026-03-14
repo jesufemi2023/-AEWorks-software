@@ -79,6 +79,8 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
                     if (result.success) {
                         showNotification(result.message, 'success');
                         refreshAppState();
+                    } else if (result.vaultMissing) {
+                        showNotification(result.message, 'error');
                     } else {
                         showNotification(result.message, 'warning');
                     }

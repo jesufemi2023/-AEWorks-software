@@ -83,7 +83,8 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
     };
 
     const copyOnboardingLink = () => {
-        const setupUrl = `${window.location.origin}${window.location.pathname}?cid=${encodeURIComponent(systemMeta.googleClientId || '')}`;
+        const masterEmail = (systemMeta as any).connectedEmail || systemMeta.masterCorporateEmail || '';
+        const setupUrl = `${window.location.origin}${window.location.pathname}?cid=${encodeURIComponent(systemMeta.googleClientId || '')}&master=${encodeURIComponent(masterEmail)}`;
         navigator.clipboard.writeText(setupUrl);
         showNotification("Staff Onboarding Link copied!", "success");
     };
