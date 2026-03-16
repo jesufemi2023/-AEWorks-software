@@ -86,7 +86,7 @@ const ProjectTrackerBoard: React.FC<{setView: (view: View) => void}> = ({ setVie
                                                         className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"
                                                         title="Delete Project"
                                                     >
-                                                        <Icon name="fas fa-trash-alt" />
+                                                        <Icon name="fas fa-trash" />
                                                     </button>
                                                 )}
                                             </div>

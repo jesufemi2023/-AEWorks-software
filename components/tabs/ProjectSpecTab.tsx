@@ -249,7 +249,7 @@ const ProjectSpecTab: React.FC = () => {
                                                     placeholder="0.00"
                                                 />
                                             </div>
-                                            <button onClick={() => handleDeleteManualItem(item.id)} className="text-slate-300 hover:text-red-500 p-1 transition-all shrink-0"><Icon name="fas fa-trash-alt" className="text-xs"/></button>
+                                            <button onClick={() => handleDeleteManualItem(item.id)} className="text-slate-300 hover:text-red-500 p-1 transition-all shrink-0"><Icon name="fas fa-trash" className="text-xs"/></button>
                                         </div>
                                     ))}
                                 </div>
@@ -280,7 +280,7 @@ const ProjectSpecTab: React.FC = () => {
                                         placeholder="Job Description..."
                                     />
                                     <div className="text-[10px] text-slate-400 font-mono px-2 hidden sm:block">Items: {job.framingTakeOff.length + job.finishesTakeOff.length}</div>
-                                    <button onClick={() => handleDeleteJob(job.id)} className="text-slate-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-all"><Icon name="fas fa-trash-alt"/></button>
+                                    <button onClick={() => handleDeleteJob(job.id)} className="text-slate-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-all"><Icon name="fas fa-trash"/></button>
                                 </div>
                             ))}
                         </div>

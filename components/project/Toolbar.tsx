@@ -209,7 +209,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
                         </Button>
                     )}
                     <Button onClick={() => setIsProjectListOpen(true)} variant="success" icon="fas fa-folder-open" size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">Load</Button>
-                    <Button onClick={resetProject} variant="warning" icon="fas fa-file" size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">New</Button>
+                    <Button onClick={() => { resetProject(); setView(View.DASHBOARD); }} variant="warning" icon="fas fa-file" size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">New</Button>
                     <div className="hidden md:block w-px bg-slate-200 mx-1 h-5 flex-shrink-0"></div>
                     <Button onClick={() => setView(View.TRACKER)} variant="primary" icon="fas fa-columns" size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">Tracker</Button>
                 </div>
