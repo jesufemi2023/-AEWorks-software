@@ -16,8 +16,14 @@ interface ProjectListModalProps {
 const ProjectListModal: React.FC<ProjectListModalProps> = ({ isOpen, onClose, onLoadProject, projects }) => {
     const { deleteProject } = useProjectContext();
     const { currentUser } = useAppContext();
-    const isViewer = currentUser?.role === 'viewer';
     const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+    const isManager = currentUser?.role === 'manager';
+
+    const canDeleteProject = (project: Project) => {
+        if (!currentUser) return false;
+        if (isAdmin || isManager) return true;
+        return project.createdBy === currentUser.username;
+    };
     
     const sortedProjects = [...projects].sort((a, b) => {
         const dateA = a.savedAt ? new Date(a.savedAt).getTime() : 0;
@@ -51,7 +57,7 @@ const ProjectListModal: React.FC<ProjectListModalProps> = ({ isOpen, onClose, on
                                 </div>
                             </div>
                             
-                            {!isAdmin ? null : (
+                            {!canDeleteProject(project) ? null : (
                                 <div className="pl-4">
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); handleDelete(project.projectCode); }} 

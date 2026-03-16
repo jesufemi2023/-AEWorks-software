@@ -64,7 +64,7 @@ export const INITIAL_USER_DATA: AuthUser[] = [
         username: 'SuperAdmin',
         email: 'master@aeworks.com',
         password: 'masterPassword123',
-        role: 'admin',
+        role: 'superadmin',
         updatedAt: new Date().toISOString()
     }
 ];

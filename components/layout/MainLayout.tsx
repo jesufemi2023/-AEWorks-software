@@ -22,12 +22,12 @@ import Button from '../ui/Button';
 import Icon from '../ui/Icon';
 import { useAppContext } from '../../hooks/useAppContext';
 
-const createInitialProject = (defaultCostingVars: CostingVariables): Project => {
+const createInitialProject = (defaultCostingVars: CostingVariables, createdBy?: string): Project => {
     return {
         projName: '', jobsThisYear: 1, year: new Date().getFullYear() % 100, projectCode: '',
         projectStatus: '0', prodCentre: '', prodCoords: '', clientName: '', clientMgr: '',
         clientPhone: '', clientEmail: '', clientAddr: '', destCitySelect: '', destCoords: '',
-        projMgr: '', mgrPhone: '', mgrEmail: '', shippingLength: 0, shippingWidth: 0, shippingHeight: 0,
+        projMgr: '', mgrPhone: '', mgrEmail: '', createdBy, shippingLength: 0, shippingWidth: 0, shippingHeight: 0,
         jobs: [{ id: db.generateId(), name: 'Main Job', framingTakeOff: [], finishesTakeOff: [] }],
         costingVariables: { ...defaultCostingVars }
     };
@@ -36,7 +36,7 @@ const createInitialProject = (defaultCostingVars: CostingVariables): Project => 
 const MainLayout: React.FC<{onBack?: () => void}> = ({ onBack }) => {
     const { currentUser, setCurrentUser, showNotification } = useAppContext();
     const [view, setView] = useState<View>(View.DASHBOARD);
-    const [currentProject, setCurrentProject] = useState<Project>(() => createInitialProject({}));
+    const [currentProject, setCurrentProject] = useState<Project>(() => createInitialProject({}, currentUser?.username));
     const [clients, setClients] = useState<Client[]>([]);
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [centres, setCentres] = useState<Centre[]>([]);
@@ -104,17 +104,26 @@ const MainLayout: React.FC<{onBack?: () => void}> = ({ onBack }) => {
         showNotification(`Project ${projectCode} purged locally. Click COMMIT to sync deletion to the Cloud Vault.`, 'warning');
         
         if (currentProject.projectCode === projectCode) {
-            setCurrentProject(createInitialProject(defaultCostingVariables));
+            setCurrentProject(createInitialProject(defaultCostingVariables, currentUser?.username));
         }
-    }, [currentProject, defaultCostingVariables, showNotification]);
+    }, [currentProject, defaultCostingVariables, showNotification, currentUser]);
 
     const projectContextValue = useMemo(() => ({
         currentProject, setCurrentProject, clients, setClients, contacts, setContacts,
         centres, setCentres, framingMaterials, setFramingMaterials, finishMaterials, setFinishMaterials,
         projects, setProjects, defaultCostingVariables, setDefaultCostingVariables,
         updateProject, deleteProject, updateGlobalDefaults: (v: any) => db.saveData('defaultCostingVariables', [v]),
-        resetProject: () => setCurrentProject(createInitialProject(defaultCostingVariables))
-    }), [currentProject, clients, contacts, centres, framingMaterials, finishMaterials, projects, defaultCostingVariables, updateProject, deleteProject]);
+        resetProject: () => setCurrentProject(createInitialProject(defaultCostingVariables, currentUser?.username))
+    }), [currentProject, clients, contacts, centres, framingMaterials, finishMaterials, projects, defaultCostingVariables, updateProject, deleteProject, currentUser]);
+
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+    const isManager = currentUser?.role === 'manager';
+
+    const canEditCurrentProject = () => {
+        if (!currentUser) return false;
+        if (isAdmin || isManager) return true;
+        return currentProject.createdBy === currentUser.username;
+    };
 
     const isFullWidth = view === View.TRACKER || view === View.FEEDBACK_JOURNAL;
 
@@ -125,7 +134,7 @@ const MainLayout: React.FC<{onBack?: () => void}> = ({ onBack }) => {
                     <UserBar />
                     <Header />
                     {view !== View.TRACKER && view !== View.FEEDBACK_JOURNAL && (
-                        <StatusBar statusValue={parseInt(currentProject.projectStatus, 10)} onSetStatus={(v) => updateProject({...currentProject, projectStatus: v.toString()})} />
+                        <StatusBar statusValue={parseInt(currentProject.projectStatus, 10)} onSetStatus={canEditCurrentProject() ? (v) => updateProject({...currentProject, projectStatus: v.toString()}) : undefined} />
                     )}
                     <Toolbar setView={setView} onBack={onBack} />
                 </div>

@@ -46,14 +46,14 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
             label: 'Tier / Level', 
             type: 'select',
             options: [
-                { label: 'Level 1: Super Admin', value: 'superadmin' },
-                { label: 'Level 2: Admin', value: 'admin' },
-                { label: 'Level 3: Manager', value: 'manager' },
-                { label: 'Level 4: Viewer', value: 'viewer' }
+                { label: 'Level 0: Super Admin', value: 'superadmin' },
+                { label: 'Level 1: Admin', value: 'admin' },
+                { label: 'Level 2: Manager', value: 'manager' },
+                { label: 'Level 3: Viewer', value: 'viewer' }
             ],
             render: (val) => {
                 const colors: any = { superadmin: 'text-red-600', admin: 'text-blue-600', manager: 'text-purple-600', viewer: 'text-slate-500' };
-                const labels: any = { superadmin: 'L1: Super Admin', admin: 'L2: Admin', manager: 'L3: Manager', viewer: 'L4: Viewer' };
+                const labels: any = { superadmin: 'L0: Super Admin', admin: 'L1: Admin', manager: 'L2: Manager', viewer: 'L3: Viewer' };
                 return <span className={`font-black uppercase tracking-tighter text-[10px] ${colors[val] || ''}`}>{labels[val] || val}</span>;
             }
         },
@@ -71,9 +71,9 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
     ];
 
     const handleSaveList = (updatedUsers: AuthUser[]) => {
-        const superAdmins = updatedUsers.filter(u => u.role === 'superadmin');
-        if (superAdmins.length === 0) {
-            showNotification('Security Error: At least one Super Admin required.', 'error');
+        const admins = updatedUsers.filter(u => u.role === 'admin' || u.role === 'superadmin');
+        if (admins.length === 0) {
+            showNotification('Security Error: At least one Admin or Super Admin required.', 'error');
             return;
         }
 
@@ -123,7 +123,7 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
         }
     };
 
-    if (currentUser?.role !== 'superadmin' && currentUser?.role !== 'admin') {
+    if (currentUser?.role !== 'admin' && currentUser?.role !== 'superadmin') {
         return (
             <ManagePage title="Security Violation" icon="fas fa-user-lock" goBack={goBack}>
                 <div className="p-16 text-center bg-red-50 rounded-2xl border-2 border-red-100 flex flex-col items-center">
@@ -132,7 +132,7 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
                     </div>
                     <h3 className="text-3xl font-black text-red-900 mb-2 uppercase tracking-tighter">Access Restricted</h3>
                     <p className="text-red-700 max-w-md text-sm leading-relaxed">
-                        Identity & Access Management (IAM) is reserved for System Administrators. 
+                        Identity & Access Management (IAM) is reserved for Level 1 System Administrators. 
                     </p>
                     <Button onClick={goBack} variant="outline" className="mt-8 border-red-200 text-red-700 hover:bg-red-100">Return to Operations</Button>
                 </div>
@@ -202,10 +202,10 @@ const ManageUsersPage: React.FC<ManageUsersPageProps> = ({ goBack }) => {
                             <div>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Access Level</label>
                                 <select className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white font-bold" value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value as any})}>
-                                    <option value="viewer">Tier 4: Viewer</option>
-                                    <option value="manager">Tier 3: Manager</option>
-                                    <option value="admin">Tier 2: Admin</option>
-                                    <option value="superadmin">Tier 1: Super Admin</option>
+                                    <option value="viewer">Tier 3: Viewer</option>
+                                    <option value="manager">Tier 2: Manager</option>
+                                    <option value="admin">Tier 1: Admin</option>
+                                    <option value="superadmin">Tier 0: Super Admin</option>
                                 </select>
                             </div>
                             <div>

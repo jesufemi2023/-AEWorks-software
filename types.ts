@@ -186,6 +186,7 @@ export interface Project {
     projMgr: string;
     mgrPhone: string;
     mgrEmail: string;
+    createdBy?: string;
     shippingLength: number;
     shippingWidth: number;
     shippingHeight: number;

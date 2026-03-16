@@ -14,8 +14,14 @@ const ProjectTrackerBoard: React.FC<{setView: (view: View) => void}> = ({ setVie
     const [filterText, setFilterText] = useState('');
     const [selectedStageProject, setSelectedStageProject] = useState<Project | null>(null);
 
-    const isViewer = currentUser?.role === 'viewer';
     const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+    const isManager = currentUser?.role === 'manager';
+
+    const canEditProject = (project: Project) => {
+        if (!currentUser) return false;
+        if (isAdmin || isManager) return true;
+        return project.createdBy === currentUser.username;
+    };
 
     const filteredProjects = useMemo(() => projects.filter(p => 
         (p.projName || '').toLowerCase().includes(filterText.toLowerCase()) ||
@@ -74,7 +80,7 @@ const ProjectTrackerBoard: React.FC<{setView: (view: View) => void}> = ({ setVie
                                                     Details
                                                 </button>
                                                 <button onClick={() => { setCurrentProject(project); setView(View.DASHBOARD); }} className="text-[9px] font-black uppercase bg-slate-100 text-slate-500 px-2.5 py-1.5 rounded-lg hover:bg-slate-200">Open</button>
-                                                {!isAdmin ? null : (
+                                                {!canEditProject(project) ? null : (
                                                     <button 
                                                         onClick={() => handleDelete(project.projectCode)}
                                                         className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"
@@ -92,7 +98,7 @@ const ProjectTrackerBoard: React.FC<{setView: (view: View) => void}> = ({ setVie
                     </div>
                 ))}
             </div>
-            {selectedStageProject && <StageDetailsModal isOpen={!!selectedStageProject} onClose={() => setSelectedStageProject(null)} project={selectedStageProject} onSave={updateProject} />}
+            {selectedStageProject && <StageDetailsModal isOpen={!!selectedStageProject} onClose={() => setSelectedStageProject(null)} project={selectedStageProject} onSave={updateProject} readOnly={!canEditProject(selectedStageProject)} />}
         </div>
     );
 };

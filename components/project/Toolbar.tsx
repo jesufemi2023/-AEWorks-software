@@ -32,9 +32,15 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
     
     const dbMenuRef = useRef<HTMLDivElement>(null);
 
-    const isSuperAdmin = currentUser?.role === 'superadmin';
-    const isAdmin = currentUser?.role === 'admin' || isSuperAdmin;
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+    const isManager = currentUser?.role === 'manager';
     const isViewer = currentUser?.role === 'viewer';
+
+    const canEditCurrentProject = () => {
+        if (!currentUser) return false;
+        if (isAdmin || isManager) return true;
+        return currentProject.createdBy === currentUser.username;
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -114,7 +120,10 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
     };
 
     const handleSaveProject = async () => {
-        if (isViewer) return;
+        if (!canEditCurrentProject()) {
+            showNotification('You do not have permission to edit this project.', 'error');
+            return;
+        }
         if (!currentProject.projName || currentProject.projName.trim() === '') {
             showNotification('Project Name Required.', 'error');
             return;
@@ -194,13 +203,13 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
                             Dashboard
                         </Button>
                     )}
-                    {!isViewer && (
+                    {!canEditCurrentProject() ? null : (
                         <Button onClick={handleSaveProject} variant="primary" icon={isCommitting ? "fas fa-sync animate-spin" : "fas fa-save"} disabled={isCommitting} size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">
                             {commitStatus === 'saving' ? 'Saving...' : commitStatus === 'syncing' ? 'Syncing...' : 'Commit'}
                         </Button>
                     )}
                     <Button onClick={() => setIsProjectListOpen(true)} variant="success" icon="fas fa-folder-open" size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">Load</Button>
-                    {!isViewer && <Button onClick={resetProject} variant="warning" icon="fas fa-file" size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">New</Button>}
+                    <Button onClick={resetProject} variant="warning" icon="fas fa-file" size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">New</Button>
                     <div className="hidden md:block w-px bg-slate-200 mx-1 h-5 flex-shrink-0"></div>
                     <Button onClick={() => setView(View.TRACKER)} variant="primary" icon="fas fa-columns" size="sm" className="whitespace-nowrap py-1.5 px-3 text-[10px] uppercase font-black">Tracker</Button>
                 </div>
@@ -222,7 +231,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ setView, onBack }) => {
                         </div>
                     </div>
 
-                    {!isViewer && (
+                    {(!isAdmin && !isManager) ? null : (
                         <div className="relative" ref={dbMenuRef}>
                             <button onClick={() => setIsDbMenuOpen(!isDbMenuOpen)} className={`flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-all ${isDbMenuOpen ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300'}`}>
                                 <Icon name="fas fa-database" />

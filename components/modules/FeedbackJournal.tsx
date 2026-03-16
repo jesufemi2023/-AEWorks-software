@@ -15,10 +15,18 @@ interface FeedbackJournalProps {
 
 const FeedbackJournal: React.FC<FeedbackJournalProps> = ({ onBack, onOpenProject }) => {
     const { projects, updateProject } = useProjectContext();
-    const { currentUser } = useAppContext();
-    const isReadOnly = currentUser?.role !== 'admin' && currentUser?.role !== 'superadmin';
+    const { currentUser, showNotification } = useAppContext();
     const [unassigned, setUnassigned] = useState<any[]>([]);
     const [linkingItem, setLinkingItem] = useState<any | null>(null);
+
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+    const isManager = currentUser?.role === 'manager';
+
+    const canEditProject = (project: Project) => {
+        if (!currentUser) return false;
+        if (isAdmin || isManager) return true;
+        return project.createdBy === currentUser.username;
+    };
 
     useEffect(() => {
         setUnassigned(db.getData('unassignedFeedback'));
@@ -56,6 +64,10 @@ const FeedbackJournal: React.FC<FeedbackJournalProps> = ({ onBack, onOpenProject
         if (!linkingItem) return;
         const project = projects.find(p => p.projectCode === projectCode);
         if (project) {
+            if (!canEditProject(project)) {
+                showNotification("You do not have permission to edit this project.", "error");
+                return;
+            }
             // Explicitly typing 'updated' as 'Project' to ensure 'feedbackStatus' is treated as a literal union type.
             const updated: Project = {
                 ...project,
@@ -155,12 +167,10 @@ const FeedbackJournal: React.FC<FeedbackJournalProps> = ({ onBack, onOpenProject
                                             </div>
                                         </div>
                                         <p className="text-[11px] font-medium text-slate-600 italic mb-6">"{item.feedback.comments || 'No comment...'}"</p>
-                                        {!isReadOnly && (
-                                            <div className="flex gap-2">
-                                                <Button onClick={() => setLinkingItem(item)} variant="primary" size="sm" className="flex-grow py-3 text-[9px] uppercase font-black tracking-widest">Link to Project</Button>
-                                                <button onClick={() => handleDiscardOrphan(item.id)} className="px-4 text-slate-300 hover:text-red-500 transition-colors"><Icon name="fas fa-trash-alt"/></button>
-                                            </div>
-                                        )}
+                                        <div className="flex gap-2">
+                                            <Button onClick={() => setLinkingItem(item)} variant="primary" size="sm" className="flex-grow py-3 text-[9px] uppercase font-black tracking-widest">Link to Project</Button>
+                                            <button onClick={() => handleDiscardOrphan(item.id)} className="px-4 text-slate-300 hover:text-red-500 transition-colors"><Icon name="fas fa-trash-alt"/></button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -257,7 +267,7 @@ const FeedbackJournal: React.FC<FeedbackJournalProps> = ({ onBack, onOpenProject
                         <div>
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Select Target Project</label>
                             <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                                {projects.filter(p => parseInt(p.projectStatus) >= 15).map(p => (
+                                {projects.filter(p => parseInt(p.projectStatus) >= 15 && canEditProject(p)).map(p => (
                                     <button 
                                         key={p.projectCode} 
                                         onClick={() => handleLinkToProject(p.projectCode)}

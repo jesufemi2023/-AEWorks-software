@@ -14,9 +14,10 @@ interface StageDetailsModalProps {
     onClose: () => void;
     project: Project;
     onSave: (updatedProject: Project) => void;
+    readOnly?: boolean;
 }
 
-const StageDetailsModal: React.FC<StageDetailsModalProps> = ({ isOpen, onClose, project, onSave }) => {
+const StageDetailsModal: React.FC<StageDetailsModalProps> = ({ isOpen, onClose, project, onSave, readOnly = false }) => {
     const { framingMaterials, finishMaterials, contacts, setContacts } = useProjectContext();
     const { currentUser, showNotification } = useAppContext();
     const [formData, setFormData] = useState<ProjectTrackingData>({});
@@ -115,6 +116,10 @@ const StageDetailsModal: React.FC<StageDetailsModalProps> = ({ isOpen, onClose, 
     };
 
     const handleSave = () => {
+        if (readOnly) {
+            showNotification("You do not have permission to edit this project.", "error");
+            return;
+        }
         const workerEvaluations: WorkerEvaluation[] = Object.entries(workerRatings).map(([workerId, rating]) => ({
             workerId,
             rating
@@ -585,7 +590,9 @@ const StageDetailsModal: React.FC<StageDetailsModalProps> = ({ isOpen, onClose, 
                         {(formData.stageApproved || hasFeedback) ? 'State Cleared' : 'Action Required'}
                     </span>
                 </div>
-                <Button onClick={handleSave} variant="primary" icon="fas fa-server" className="px-10 py-4 text-[11px] uppercase font-black shadow-2xl shadow-blue-500/20 bg-slate-900 border-none hover:bg-blue-600 transition-all">Synchronize Tracking State</Button>
+                {!readOnly && (
+                    <Button onClick={handleSave} variant="primary" icon="fas fa-server" className="px-10 py-4 text-[11px] uppercase font-black shadow-2xl shadow-blue-500/20 bg-slate-900 border-none hover:bg-blue-600 transition-all">Synchronize Tracking State</Button>
+                )}
             </div>
         </Modal>
     );
